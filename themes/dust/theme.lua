@@ -20,7 +20,7 @@ function systitle(path) return systheme("/titlebar") .. path end
 -- {{ Main
 theme = {}
 theme.wallpaper             = hometheme("/background.jpg")
-theme.font                  = "ubuntu mono 18"
+theme.font                  = "ubuntu mono 12"
 theme.menu_height           = 15
 theme.menu_width            = 100
 -- }}}

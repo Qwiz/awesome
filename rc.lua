@@ -15,6 +15,7 @@ local naughty = require("naughty")
 local menubar = require("menubar")
 local vicious = require("vicious")
 local wi = require("wi")
+local scratch = require("scratch")
 
 -- {{{ Error handling
 -- Startup
@@ -84,7 +85,7 @@ naughty.config.defaults.position = "top_right"
 naughty.config.defaults.margin = 8
 naughty.config.defaults.gap = 1
 naughty.config.defaults.ontop = true
-naughty.config.defaults.font = "Monaco 18"
+naughty.config.defaults.font = "Ubuntu Mono 12"
 naughty.config.defaults.icon = nil
 naughty.config.defaults.icon_size = 256
 naughty.config.defaults.fg = beautiful.fg_tooltip
@@ -104,7 +105,8 @@ end
 
 -- {{{ Tags
 tags = {
-  names   = { "一", "二", "三", "四", "五", "六", "七", "八", "九", "十" },
+  -- names   = { "一", "二", "三", "四", "五", "六", "七", "八", "九", "十" },
+  names   = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
   layouts = { layouts[2], layouts[10], layouts[2], layouts[2], layouts[2],
               layouts[1], layouts[10], layouts[1], layouts[1], layouts[1] } }
 
@@ -250,7 +252,7 @@ for s = 1, screen.count() do
   mywibox[s]:set_widget(wibox_layout)
 
   -- Graphbox
-  mygraphbox[s] = awful.wibox({ position = "bottom", height = 12, screen = s })
+  mygraphbox[s] = awful.wibox({ position = "bottom", height = 16, screen = s })
 
   local left_graphbox = wibox.layout.fixed.horizontal()
   left_graphbox:add(mylauncher)
@@ -262,6 +264,8 @@ for s = 1, screen.count() do
   left_graphbox:add(cpupct1)
   left_graphbox:add(cpugraph2)
   left_graphbox:add(cpupct2)
+  left_graphbox:add(cpugraph3)
+  left_graphbox:add(cpupct3)
   left_graphbox:add(tab)
   left_graphbox:add(memused)
   left_graphbox:add(membar)

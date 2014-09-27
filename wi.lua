@@ -10,8 +10,8 @@ local beautiful = require("beautiful")
 local vicious = require("vicious")
 local naughty = require("naughty")
 
-graphwidth  = 120
-graphheight = 20
+graphwidth  = 50
+graphheight = 14
 pctwidth    = 40
 netwidth    = 50
 mpdwidth    = 365
@@ -27,7 +27,7 @@ pipe = wibox.widget.textbox()
 pipe:set_markup("<span color='" .. beautiful.bg_em .. "'>|</span>")
 
 tab = wibox.widget.textbox()
-tab:set_text("         ")
+tab:set_text("    ")
 
 volspace = wibox.widget.textbox()
 volspace:set_text(" ")
@@ -121,6 +121,31 @@ cpupct2.fit =
     return math.max(pctwidth, w), h
   end
 vicious.register(cpupct2, vicious.widgets.cpu, "$4%", 2)
+
+-- Core 3 graph
+cpugraph3 = awful.widget.graph()
+cpugraph3:set_width(graphwidth):set_height(graphheight)
+cpugraph3:set_border_color(nil)
+cpugraph3:set_border_color(beautiful.bg_widget)
+cpugraph3:set_background_color(beautiful.bg_widget)
+cpugraph3:set_color({
+  type = "linear",
+  from = { 0, graphheight },
+  to = { 0, 0 },
+  stops = {
+    { 0, beautiful.fg_widget },
+    { 0.25, beautiful.fg_center_widget },
+    { 1, beautiful.fg_end_widget } } })
+vicious.register(cpugraph3, vicious.widgets.cpu, "$5")
+
+-- Core 2 %
+cpupct3 = wibox.widget.textbox()
+cpupct3.fit =
+  function(box, w, h)
+    local w, h = wibox.widget.textbox.fit(box, w, h)
+    return math.max(pctwidth, w), h
+  end
+vicious.register(cpupct3, vicious.widgets.cpu, "$5%", 2)
 -- }}}
 
 -- {{{ Memory
@@ -160,7 +185,7 @@ vicious.cache(vicious.widgets.fs)
 -- Root used
 rootfsused = wibox.widget.textbox()
 vicious.register(rootfsused, vicious.widgets.fs,
-  "<span color='" .. beautiful.fg_em .. "'>ssd</span>${/ used_gb}GB", 97)
+  "<span color='" .. beautiful.fg_em .. "'>rootfs</span>${/ used_gb}GB", 97)
 
 -- Root bar
 rootfsbar = awful.widget.progressbar()
@@ -201,12 +226,12 @@ txgraph:set_color({
     { 0, beautiful.fg_widget },
     { 0.25, beautiful.fg_center_widget },
     { 1, beautiful.fg_end_widget } } })
-vicious.register(txgraph, vicious.widgets.net, "${eth0 up_kb}")
+vicious.register(txgraph, vicious.widgets.net, "${enp2s0 up_kb}")
 
 -- TX total
 txwidget = wibox.widget.textbox()
 vicious.register(txwidget, vicious.widgets.net,
-  "<span color='" .. beautiful.fg_em .. "'>tx</span>${eth0 tx_mb}MB", 19)
+  "<span color='" .. beautiful.fg_em .. "'>tx</span>${enp2s0 tx_mb}MB", 19)
 
 -- TX speed
 txwidget = wibox.widget.textbox()
@@ -215,7 +240,7 @@ txwidget.fit =
     local w, h = wibox.widget.textbox.fit(box, w, h)
     return math.max(netwidth, w), h
   end
-vicious.register(txwidget, vicious.widgets.net, "${eth0 up_kb}", 2)
+vicious.register(txwidget, vicious.widgets.net, "${enp2s0 up_kb}", 2)
 
 -- RX graph
 rxgraph = awful.widget.graph()
@@ -230,12 +255,12 @@ rxgraph:set_color({
     { 0, beautiful.fg_widget },
     { 0.25, beautiful.fg_center_widget },
     { 1, beautiful.fg_end_widget } } })
-vicious.register(rxgraph, vicious.widgets.net, "${eth0 down_kb}")
+vicious.register(rxgraph, vicious.widgets.net, "${enp2s0 down_kb}")
 
 -- RX total
 rxwidget = wibox.widget.textbox()
 vicious.register(rxwidget, vicious.widgets.net,
-  "<span color='" .. beautiful.fg_em .. "'>rx</span>${eth0 rx_mb}MB", 17)
+  "<span color='" .. beautiful.fg_em .. "'>rx</span>${enp2s0 rx_mb}MB", 17)
 
 -- RX speed
 rxwidget = wibox.widget.textbox()
@@ -244,14 +269,14 @@ rxwidget.fit =
     local w, h = wibox.widget.textbox.fit(box, w, h)
     return math.max(netwidth, w), h
   end
-vicious.register(rxwidget, vicious.widgets.net, "${eth0 down_kb}", 2)
+vicious.register(rxwidget, vicious.widgets.net, "${enp2s0 down_kb}", 2)
 -- }}}
 
 -- {{{ Weather
 weather = wibox.widget.textbox()
 vicious.register(weather, vicious.widgets.weather,
-  "<span color='" .. beautiful.fg_em .. "'>${sky}</span> @ ${tempf}°F on",
-  1501, "XXXX")
+  "<span color='" .. beautiful.fg_em .. "'>${sky}</span> @ ${tempc}°C on",
+  1501, "ULLI")
 weather:buttons(awful.util.table.join(awful.button({ }, 1,
   function() vicious.force({ weather }) end)))
 -- }}}
@@ -382,16 +407,16 @@ volicon:set_image(beautiful.widget_vol)
 
 -- Volume %
 volpct = wibox.widget.textbox()
-vicious.register(volpct, vicious.widgets.volume, "$1%", nil, "Master")
+vicious.register(volpct, vicious.widgets.volume, "$1%", nil, "PCM")
 
 -- Buttons
 volicon:buttons(awful.util.table.join(
   awful.button({ }, 1,
-    function() awful.util.spawn("amixer -q set Master toggle", false) end),
+    function() awful.util.spawn("amixer -c 1 -q set PCM toggle", false) end),
   awful.button({ }, 4,
-    function() awful.util.spawn("amixer -q set Master 3+% unmute", false) end),
+    function() awful.util.spawn("amixer -c 1 -q set PCM 3+% unmute", false) end),
   awful.button({ }, 5,
-    function() awful.util.spawn("amixer -q set Master 3-% unmute", false) end)))
+    function() awful.util.spawn("amixer -c 1 -q set PCM 3-% unmute", false) end)))
 volpct:buttons(volicon:buttons())
 volspace:buttons(volicon:buttons())
 -- }}}
