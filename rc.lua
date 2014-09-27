@@ -45,19 +45,6 @@ terminal   = "urxvtc"
 editor     = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
 
-pianobar_cmd      = os.getenv("HOME") .. "/.config/pianobar/control-pianobar.sh "
-pianobar_toggle   = pianobar_cmd .. "p"
-pianobar_next     = pianobar_cmd .. "n"
-pianobar_like     = pianobar_cmd .. "l"
-pianobar_ban      = pianobar_cmd .. "b"
-pianobar_tired    = pianobar_cmd .. "t"
-pianobar_history  = pianobar_cmd .. "h"
-pianobar_upcoming = pianobar_cmd .. "u"
-pianobar_station  = pianobar_cmd .. "ss"
-pianobar_playing  = pianobar_cmd .. "c"
-pianobar_quit     = pianobar_cmd .. "q && screen -S pianobar -X quit"
-pianobar_screen   = "screen -Sdm pianobar && screen -S pianobar -X screen " .. pianobar_toggle
-
 modkey = "Mod4"
 altkey = "Mod1"
 -- }}}
@@ -234,8 +221,6 @@ for s = 1, screen.count() do
   local right_wibox = wibox.layout.fixed.horizontal()
   right_wibox:add(space)
   if s == 1 then right_wibox:add(wibox.widget.systray()) end
-  right_wibox:add(mpdicon)
-  right_wibox:add(mpdwidget)
   right_wibox:add(pacicon)
   right_wibox:add(pacwidget)
   right_wibox:add(baticon)
@@ -368,39 +353,6 @@ globalkeys = awful.util.table.join(
 
   -- Menubar
   awful.key({ modkey }, "r", function() menubar.show() end),
-
-  -- {{{ Pianobar
-  awful.key({ modkey }, "XF86AudioPrev",
-    function() awful.util.spawn(pianobar_history, false) end),
-  awful.key({ modkey }, "XF86AudioNext",
-    function() awful.util.spawn(pianobar_next, false) end),
-  awful.key({ modkey, "Shift" }, "XF86AudioPlay",
-    function() awful.util.spawn(pianobar_quit, false) end),
-  awful.key({ modkey }, "XF86AudioPlay",
-    function()
-      local f = io.popen("pgrep pianobar")
-      p = f:read("*line")
-      if p then
-        awful.util.spawn(pianobar_toggle, false)
-      else
-        awful.util.spawn(pianobar_screen, false)
-      end
-    end),
-  awful.key({ modkey }, "'",
-    function()
-      local f = io.popen("pgrep pianobar")
-      p = f:read("*line")
-      if not p then awful.util.spawn_with_shell(pianobar_screen) end
-      scratch.drop("xterm -name pianobar -e 'screen -x pianobar'",
-        "top", "center", 0.5, 0.2, false)
-    end),
-  awful.key({ modkey }, "=", function() awful.util.spawn(pianobar_like, false) end),
-  awful.key({ modkey }, "-", function() awful.util.spawn(pianobar_ban, false) end),
-  awful.key({ modkey, "Shift" }, "-", function() awful.util.spawn(pianobar_tired, false) end),
-  awful.key({ modkey }, "[", function() awful.util.spawn(pianobar_station, false) end),
-  awful.key({ modkey }, "]", function() awful.util.spawn(pianobar_upcoming, false) end),
-  awful.key({ modkey }, "\\", function() awful.util.spawn(pianobar_playing, false) end),
-  -- }}}
 
   -- {{{ Tag 0
   awful.key({ modkey }, 0,
