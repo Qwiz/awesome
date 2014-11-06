@@ -41,7 +41,7 @@ end
 -- }}}
 
 -- {{{ Variables
-terminal   = "urxvtc"
+terminal   = "urxvt"
 editor     = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -74,7 +74,7 @@ naughty.config.defaults.gap = 1
 naughty.config.defaults.ontop = true
 naughty.config.defaults.font = "Ubuntu Mono 12"
 naughty.config.defaults.icon = nil
-naughty.config.defaults.icon_size = 256
+naughty.config.defaults.icon_size = 32
 naughty.config.defaults.fg = beautiful.fg_tooltip
 naughty.config.defaults.bg = beautiful.bg_tooltip
 naughty.config.defaults.border_color = beautiful.border_tooltip
@@ -92,10 +92,9 @@ end
 
 -- {{{ Tags
 tags = {
-  -- names   = { "一", "二", "三", "四", "五", "六", "七", "八", "九", "十" },
-  names   = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" },
-  layouts = { layouts[2], layouts[10], layouts[2], layouts[2], layouts[2],
-              layouts[1], layouts[10], layouts[1], layouts[1], layouts[1] } }
+  names   = { "Term", "Term", "IDE", "WEB", "Mail", "Msgs", "Entt" },
+  layouts = { layouts[2], layouts[2], layouts[10], layouts[10], 
+              layouts[10], layouts[10], layouts[9] } }
 
 for s = 1, screen.count() do
   tags[s] = awful.tag(tags.names, s, tags.layouts)
@@ -109,7 +108,7 @@ mylauncher:buttons(awful.util.table.join(
   -- Lock
   awful.button({ }, 1,
     function()
-      local lock = "i3lock -d -p default -c " .. beautiful.bg_focus:gsub("#","")
+      local lock = "i3lock -d -p default -t -c " .. beautiful.bg_focus:gsub("#","")
       awful.util.spawn(lock, false)
     end),
 
@@ -133,7 +132,7 @@ menubar.utils.terminal = terminal
 
 -- Clock
 mytextclock = awful.widget.textclock("<span color='" .. beautiful.fg_em ..
-  "'>%a %m/%d</span> @ %I:%M %p")
+  "'>%a %d.%m.%y</span> @ %H:%M")
 
 -- {{{ Initialize wiboxes
 mywibox = {}
@@ -209,7 +208,7 @@ for s = 1, screen.count() do
     awful.widget.tasklist.filter.currenttags, mytasklist.buttons)
 
   -- Wibox
-  mywibox[s] = awful.wibox({ position = "top", height = 16, screen = s })
+  mywibox[s] = awful.wibox({ position = "top", height = 20, screen = s })
 
   local left_wibox = wibox.layout.fixed.horizontal()
   left_wibox:add(mytaglist[s])
@@ -221,13 +220,17 @@ for s = 1, screen.count() do
   local right_wibox = wibox.layout.fixed.horizontal()
   right_wibox:add(space)
   if s == 1 then right_wibox:add(wibox.widget.systray()) end
+  right_wibox:add(essidicon)
+  right_wibox:add(essidwidget)
   right_wibox:add(pacicon)
   right_wibox:add(pacwidget)
   right_wibox:add(baticon)
   right_wibox:add(batpct)
   right_wibox:add(volicon)
-  right_wibox:add(volpct)
-  right_wibox:add(volspace)
+  right_wibox:add(volwidget)
+  right_wibox:add(space)
+  right_wibox:add(kbdwidget)
+  right_wibox:add(space)
 
   local wibox_layout = wibox.layout.align.horizontal()
   wibox_layout:set_left(left_wibox)
@@ -237,36 +240,33 @@ for s = 1, screen.count() do
   mywibox[s]:set_widget(wibox_layout)
 
   -- Graphbox
-  mygraphbox[s] = awful.wibox({ position = "bottom", height = 16, screen = s })
+  mygraphbox[s] = awful.wibox({ position = "bottom", height = 20, screen = s })
 
   local left_graphbox = wibox.layout.fixed.horizontal()
   left_graphbox:add(mylauncher)
   left_graphbox:add(space)
+  left_graphbox:add(cpuicon)
+  left_graphbox:add(cpugraph)
+  left_graphbox:add(space)
+  left_graphbox:add(cpuusage)
+  left_graphbox:add(at)
   left_graphbox:add(cpufreq)
-  left_graphbox:add(cpugraph0)
-  left_graphbox:add(cpupct0)
-  left_graphbox:add(cpugraph1)
-  left_graphbox:add(cpupct1)
-  left_graphbox:add(cpugraph2)
-  left_graphbox:add(cpupct2)
-  left_graphbox:add(cpugraph3)
-  left_graphbox:add(cpupct3)
   left_graphbox:add(tab)
-  left_graphbox:add(memused)
+  left_graphbox:add(ramicon)
+  -- left_graphbox:add(memused)
   left_graphbox:add(membar)
+  left_graphbox:add(space)
   left_graphbox:add(mempct)
   left_graphbox:add(tab)
-  left_graphbox:add(rootfsused)
-  left_graphbox:add(rootfsbar)
-  left_graphbox:add(rootfspct)
-  left_graphbox:add(tab)
-  left_graphbox:add(txwidget)
+  left_graphbox:add(txicon)
   left_graphbox:add(txgraph)
-  left_graphbox:add(txwidget)
-  left_graphbox:add(tab)
-  left_graphbox:add(rxwidget)
+  left_graphbox:add(space)
+  left_graphbox:add(txspeed)
+  left_graphbox:add(space)
+  left_graphbox:add(rxicon)
   left_graphbox:add(rxgraph)
-  left_graphbox:add(rxwidget)
+  left_graphbox:add(space)
+  left_graphbox:add(rxspeed)
 
   local right_graphbox = wibox.layout.fixed.horizontal()
   right_graphbox:add(weather)
@@ -284,10 +284,17 @@ end
 
 -- {{{ Global keybindings
 globalkeys = awful.util.table.join(
+
   -- Tag navigation
   awful.key({ modkey, }, "Left", awful.tag.viewprev ),
   awful.key({ modkey, }, "Right", awful.tag.viewnext ),
   awful.key({ modkey, }, "Escape", awful.tag.history.restore),
+
+  -- Media keys
+  awful.key({ modkey }, "d", displays),
+  -- awful.key({ }, "XF86AudioRaiseVolume", function () awful.util.spawn("amixer set Master 9%+") end),
+  -- awful.key({ }, "XF86AudioLowerVolume", function () awful.util.spawn("amixer set Master 9%-") end),
+  -- awful.key({ }, "XF86AudioMute", function () awful.util.spawn("amixer -D pulse set Master 1+ toggle", false) end),
 
   -- Client navigation
   awful.key({ altkey, }, "Tab",
@@ -295,55 +302,55 @@ globalkeys = awful.util.table.join(
       awful.client.focus.byidx( 1)
       if client.focus then client.focus:raise() end
     end),
-  awful.key({ modkey, "Shift" }, "Tab",
+  awful.key({ altkey, "Shift" }, "Tab",
     function()
       awful.client.focus.byidx(-1)
       if client.focus then client.focus:raise() end
     end),
 
   -- Layout manipulation
-  awful.key({ modkey, "Shift" }, "j", function() awful.client.swap.byidx( 1) end),
-  awful.key({ modkey, "Shift" }, "k", function() awful.client.swap.byidx(-1) end),
-  awful.key({ modkey, }, "Tab", function() awful.screen.focus_relative( 1) end),
-  awful.key({ modkey, "Shift" }, "Tab", function() awful.screen.focus_relative(-1) end),
-  awful.key({ modkey, }, "u", awful.client.urgent.jumpto),
-  awful.key({ modkey, }, "p",
+  awful.key({ modkey, "Shift" },    "j",        function() awful.client.swap.byidx( 1) end),
+  awful.key({ modkey, "Shift" },    "k",        function() awful.client.swap.byidx(-1) end),
+  awful.key({ modkey, },            "Tab",      function() awful.screen.focus_relative( 1) end),
+  awful.key({ modkey, "Shift" },    "Tab",      function() awful.screen.focus_relative(-1) end),
+  awful.key({ modkey, },            "u",        awful.client.urgent.jumpto),
+  awful.key({ modkey, },            "p",
     function()
       awful.client.focus.history.previous()
       if client.focus then client.focus:raise() end
     end),
 
   -- Standard program
-  awful.key({ modkey, }, "Return", function() awful.util.spawn(terminal) end),
-  awful.key({ modkey, "Control" }, "r", awesome.restart),
-  awful.key({ modkey, "Shift" }, "q", awesome.quit),
-  awful.key({ modkey, }, "l", function() awful.tag.incmwfact( 0.05) end),
-  awful.key({ modkey, }, "h", function() awful.tag.incmwfact(-0.05) end),
-  awful.key({ modkey, }, "k", function() awful.client.incwfact( 0.03) end),
-  awful.key({ modkey, }, "j", function() awful.client.incwfact(-0.03) end),
-  awful.key({ modkey, "Shift" }, "h", function() awful.tag.incnmaster( 1) end),
-  awful.key({ modkey, "Shift" }, "l", function() awful.tag.incnmaster(-1) end),
-  awful.key({ modkey, "Control" }, "h", function() awful.tag.incncol( 1) end),
-  awful.key({ modkey, "Control" }, "l", function() awful.tag.incncol(-1) end),
-  awful.key({ modkey, }, "space", function() awful.layout.inc(layouts, 1) end),
-  awful.key({ modkey, "Shift" }, "space", function() awful.layout.inc(layouts, -1) end),
-  awful.key({ modkey, "Control" }, "n", awful.client.restore),
+  awful.key({ modkey, },            "Return",   function() awful.util.spawn(terminal) end),
+  awful.key({ modkey, "Control" },  "r",        awesome.restart),
+  awful.key({ modkey, "Shift" },    "q",        awesome.quit),
+  awful.key({ modkey, },            "l",        function() awful.tag.incmwfact( 0.05) end),
+  awful.key({ modkey, },            "h",        function() awful.tag.incmwfact(-0.05) end),
+  awful.key({ modkey, },            "k",        function() awful.client.incwfact( 0.03) end),
+  awful.key({ modkey, },            "j",        function() awful.client.incwfact(-0.03) end),
+  awful.key({ modkey, "Shift" },    "h",        function() awful.tag.incnmaster( 1) end),
+  awful.key({ modkey, "Shift" },    "l",        function() awful.tag.incnmaster(-1) end),
+  awful.key({ modkey, "Control" },  "h",        function() awful.tag.incncol( 1) end),
+  awful.key({ modkey, "Control" },  "l",        function() awful.tag.incncol(-1) end),
+  awful.key({ modkey, },            "space",    function() awful.layout.inc(layouts, 1) end),
+  awful.key({ modkey, "Shift" },    "space",    function() awful.layout.inc(layouts, -1) end),
+  awful.key({ modkey, "Control" },  "n",        awful.client.restore),
+
+  awful.key({},                     "Print",    function() awful.util.spawn("scrot '%Y%m%d%H%M_$wx$h.png' -q 50 -e 'mv $f /home/alexn/screenshots'") end),
+  awful.key({ modkey, },            "Print",    function() awful.util.spawn("scrot '%Y%m%d%H%M_$wx$h.png' -q 50 -u -e 'mv $f /home/alexn/screenshots'") end),
+  awful.key({ modkey, "Control" },  "Print",    
+    function() 
+      awful.util.spawn("scrot '%Y%m%d%H%M_$wx$h.png' -q 50 -u -e '/home/alexn/copy2jing.sh $f'") 
+    end),
 
   -- Scratch
-  awful.key({ modkey }, "`",
+  awful.key({ modkey },             "`",
     function()
-      scratch.drop("urxvtc -name scratch", "bottom", "center", 1.0, 0.40, false)
+      scratch.drop("urxvt -name scratch", "bottom", "center", 1.0, 0.40, false)
     end),
 
-  -- Thunderbird
-  awful.key({ modkey }, ";",
-    function()
-      scratch.drop("thunderbird", "center", "center", 0.95, 0.9, false)
-    end),
-
-  -- Prompts
-  awful.key({ altkey }, "F2", function() mypromptbox[mouse.screen]:run() end),
-  awful.key({ modkey }, "x",
+-- Prompts
+  awful.key({ modkey },             "x",
     function()
       awful.prompt.run({ prompt = "Run Lua code: " },
         mypromptbox[mouse.screen].widget,
@@ -388,13 +395,13 @@ globalkeys = awful.util.table.join(
 
 -- {{{ Client keybindings
 clientkeys = awful.util.table.join(
-  awful.key({ modkey, }, "f", function(c) c.fullscreen = not c.fullscreen end),
-  awful.key({ modkey, "Shift" }, "c", function(c) c:kill() end),
-  awful.key({ modkey, "Control" }, "space", awful.client.floating.toggle ),
-  awful.key({ modkey, "Control" }, "Return", function(c) c:swap(awful.client.getmaster()) end),
-  awful.key({ modkey, }, "o", awful.client.movetoscreen ),
-  awful.key({ modkey, }, "t", function(c) c.ontop = not c.ontop end),
-  awful.key({ modkey, }, "n", function(c) c.minimized = true end),
+  awful.key({ modkey, },            "f",        function(c) c.fullscreen = not c.fullscreen end),
+  awful.key({ modkey, "Shift" },    "c",        function(c) c:kill() end),
+  awful.key({ modkey, "Control" },  "space",    awful.client.floating.toggle ),
+  awful.key({ modkey, "Control" },  "Return",   function(c) c:swap(awful.client.getmaster()) end),
+  awful.key({ modkey, },            "o",        awful.client.movetoscreen ),
+  awful.key({ modkey, },            "t",        function(c) c.ontop = not c.ontop end),
+  awful.key({ modkey, },            "n",        function(c) c.minimized = true end),
 
   -- Maximize
   awful.key({ modkey, }, "m",
@@ -460,16 +467,32 @@ awful.rules.rules = {
                    focus = awful.client.focus.filter,
                    keys = clientkeys,
                    buttons = clientbuttons } },
-  { rule = { class = "MPlayer" },
-    properties = { floating = true } },
+  { rule = { class = "Mplayer" },
+    properties = { fullscreen = true, tag = tags[1][7] } },
   { rule = { class = "Skype" },
-    properties = { floating = true, tag = tags[1][10] } },
-  { rule = { class = "Godesk" },
-    properties = { floating = true } },
-  { rule = { class = "pinentry" },
-    properties = { floating = true } },
+    properties = { floating = false, tag = tags[1][6] } },
+  { rule = { class = "Skype", role = "ConversationsWindow" },
+    properties = {
+      floating = true,
+      maximized_vertical = false,
+      maximized_horizontal = false,
+      ontop = true
+    },
+      callback = awful.client.setslave
+  },
+  { rule = { class = "Gajim" },
+    properties = { floating = false, tag = tags[1][6] } },
+  { rule = { class = "Gajim", role = "conversation" },
+    properties = {
+      floating = true,
+      maximized_vertical = false,
+      maximized_horizontal = false,
+      ontop = true
+    },
+      callback = awful.client.setslave
+  },
   { rule = { class = "Firefox" },
-    properties = { tag = tags[1][2] } },
+    properties = { floating = false, tag = tags[1][4] } },
   { rule = { class = "Firefox", instance = "Download" },
     properties = { floating = true } },
   { rule = { class = "Firefox", instance = "Browser" },
@@ -478,16 +501,22 @@ awful.rules.rules = {
     properties = { floating = true } },
   { rule = { class = "Firefox", instance = "Places" },
     properties = { floating = true } },
+  { rule = { class = "Thunderbird" },
+    properties = { floating = false, tag = tags[1][5] } },
   { rule = { class = "Thunderbird", instance = "Mail" },
     properties = { floating = true, above = true } },
   { rule = { class = "Thunderbird", instance = "Calendar" },
     properties = { floating = true, above = true } },
   { rule = { class = "Thunderbird", instance = "Msgcompose" },
     properties = { floating = true, above = true } },
-  { rule = { class = "Thunar" },
-    properties = { tag = tags[1][7] } },
-  { rule = { class = "Gimp-2.8" },
-    properties = { floating = true, tag = tags[1][8] } } }
+  { rule = { class = "Sublime Text" },
+    properties = { floating = true, tag = tags[1][3] } },
+  { rule = { class = "mpv" },
+    properties = { fullscreen = true, tag = tags[1][7] } },
+  { rule = { class = "PyCharm" },
+    properties = { floating = true, tag = tags[1][3] } },
+  { rule = { class = "feh" },
+    properties = { floating = true, above = true } } }
 -- }}}
 
 -- {{{ Signals
@@ -553,6 +582,19 @@ client.connect_signal("manage",
 
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+
+awful.util.spawn_with_shell("run_once urxvt")
+awful.util.spawn_with_shell("run_once firefox-beta")
+awful.util.spawn_with_shell("run_once thunderbird-beta")
+awful.util.spawn_with_shell("run_once gajim")
+-- awful.util.spawn_with_shell("run_once skype")
+awful.util.spawn_with_shell("run_once clipit")
+awful.util.spawn_with_shell("run_once kbdd")
+awful.util.spawn_with_shell("run_once nm-applet")
+
+
 -- }}}
+
+
 
 -- vim:set ts=2 sw=2 sts=2 et:
